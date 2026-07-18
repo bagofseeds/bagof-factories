@@ -11,11 +11,10 @@ import enum
 from bagof.hints.typevars.co import T
 
 # locals
-from .base import Factory, register_factory
+from .base import Factory
 
 
-@register_factory(enum.Enum)
-class EnumFactory(Factory[T]):
+class EnumFactory(Factory[T], register=enum.Enum):
     """Factory for [`Enum`][enum.Enum] subclasses (the first member)."""
 
     DEFAULT = enum.Enum

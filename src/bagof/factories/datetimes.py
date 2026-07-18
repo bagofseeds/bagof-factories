@@ -12,11 +12,10 @@ import datetime
 from bagof.hints.typevars.co import T
 
 # locals
-from .base import Factory, register_factory
+from .base import Factory
 
 
-@register_factory(datetime.datetime)
-class DateTimeFactory(Factory[T]):
+class DateTimeFactory(Factory[T], register=datetime.datetime):
     """Factory for [`datetime`][datetime.datetime] hints (`datetime.min`)."""
 
     DEFAULT = datetime.datetime
@@ -26,8 +25,7 @@ class DateTimeFactory(Factory[T]):
         return datetime.datetime.min
 
 
-@register_factory(datetime.date)
-class DateFactory(Factory[T]):
+class DateFactory(Factory[T], register=datetime.date):
     """Factory for [`date`][datetime.date] hints (`date.min`)."""
 
     DEFAULT = datetime.date

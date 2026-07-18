@@ -16,11 +16,10 @@ import numbers
 from bagof.hints.typevars.co import NUMBER
 
 # locals
-from .base import Factory, register_factory
+from .base import Factory
 
 
-@register_factory(numbers.Number)
-class NumberFactory(Factory[NUMBER]):
+class NumberFactory(Factory[NUMBER], register=numbers.Number):
     """Factory for [`Number`][numbers.Number] hints (an `int`, `0`)."""
 
     DEFAULT = numbers.Number
@@ -33,32 +32,28 @@ class NumberFactory(Factory[NUMBER]):
         return self.FALLBACK()
 
 
-@register_factory(numbers.Complex)
-class ComplexFactory(Factory[NUMBER]):
+class ComplexFactory(Factory[NUMBER], register=numbers.Complex):
     """Factory for [`Complex`][numbers.Complex] hints (a `complex`, `0j`)."""
 
     DEFAULT = numbers.Complex
     FALLBACK = complex
 
 
-@register_factory(numbers.Real)
-class RealFactory(Factory[NUMBER]):
+class RealFactory(Factory[NUMBER], register=numbers.Real):
     """Factory for [`Real`][numbers.Real] hints (a `float`, `0.0`)."""
 
     DEFAULT = numbers.Real
     FALLBACK = float
 
 
-@register_factory(numbers.Rational)
-class RationalFactory(Factory[NUMBER]):
+class RationalFactory(Factory[NUMBER], register=numbers.Rational):
     """Factory for [`Rational`][numbers.Rational] hints (a `Fraction`, `0`)."""
 
     DEFAULT = numbers.Rational
     FALLBACK = fractions.Fraction
 
 
-@register_factory(numbers.Integral)
-class IntegralFactory(Factory[NUMBER]):
+class IntegralFactory(Factory[NUMBER], register=numbers.Integral):
     """Factory for [`Integral`][numbers.Integral] hints (an `int`, `0`)."""
 
     DEFAULT = numbers.Integral
