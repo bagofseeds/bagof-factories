@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   test-and-publish:
-    uses: ./.github/workflows/test-and-publish.yaml
+    uses: bagofseeds/actions/.github/workflows/test-and-publish.yaml@main
     with:
       tag: ${{ github.ref }}
       test: true
