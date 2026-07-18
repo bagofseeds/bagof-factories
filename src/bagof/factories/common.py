@@ -45,7 +45,10 @@ class UnionFactory(Factory[T], register=(tx.Union, UnionType)):
     !!! example
         ```pycon
         >>> from bagof.factories import get_factory
-        >>> get_factory(int | str)()
+        >>> factory = get_factory(int | str)
+        >>> factory
+        UnionFactory(int | str)
+        >>> factory()
         0
         >>> get_factory(str | None)()  # optional -> None
         ```

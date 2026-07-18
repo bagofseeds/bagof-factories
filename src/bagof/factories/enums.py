@@ -25,7 +25,10 @@ class EnumFactory(Factory[T], register=enum.Enum):
         >>> class Color(enum.Enum):
         ...     RED = 1
         ...     GREEN = 2
-        >>> get_factory(Color)()
+        >>> factory = get_factory(Color)
+        >>> factory
+        EnumFactory(<enum 'Color'>)
+        >>> factory()
         <Color.RED: 1>
         ```
     """

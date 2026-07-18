@@ -35,7 +35,10 @@ class TypedDictFactory(MappingFactory, register=tx.TypedDict):
         >>> class Movie(tx.TypedDict):
         ...     title: str
         ...     year: int
-        >>> get_factory(Movie)()
+        >>> factory = get_factory(Movie)
+        >>> factory
+        TypedDictFactory(<class '__main__.Movie'>)
+        >>> factory()
         {'title': '', 'year': 0}
         ```
     """

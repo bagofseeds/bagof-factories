@@ -143,10 +143,10 @@ class Factory(MagicHint[T], metaclass=FactoryMetaclass):
         !!! example
             ```pycon
             >>> from bagof.factories import get_factory
-            >>> get_factory(dict[str, int])()
-            {}
-            >>> get_factory(int)()
-            0
+            >>> get_factory(dict[str, int])
+            DictFactory(dict[str, int])
+            >>> get_factory(list[int])
+            SequenceFactory(list[int])
             ```
 
         Parameters
