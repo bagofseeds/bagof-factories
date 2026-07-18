@@ -10,11 +10,10 @@ __all__ = [
 from bagof.hints.typevars.co import T
 
 # locals
-from .base import Factory, register_factory
+from .base import Factory
 
 
-@register_factory(range)
-class RangeFactory(Factory[T]):
+class RangeFactory(Factory[T], register=range):
     """Factory for [`range`][] hints (an empty `range`)."""
 
     DEFAULT = range
@@ -24,8 +23,7 @@ class RangeFactory(Factory[T]):
         return range(0)
 
 
-@register_factory(slice)
-class SliceFactory(Factory[T]):
+class SliceFactory(Factory[T], register=slice):
     """Factory for [`slice`][] hints (the full slice ``[:]``)."""
 
     DEFAULT = slice
@@ -35,8 +33,7 @@ class SliceFactory(Factory[T]):
         return slice(None)
 
 
-@register_factory(memoryview)
-class MemoryViewFactory(Factory[T]):
+class MemoryViewFactory(Factory[T], register=memoryview):
     """Factory for [`memoryview`][] hints (a view over empty bytes)."""
 
     DEFAULT = memoryview

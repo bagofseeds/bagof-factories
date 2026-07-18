@@ -22,17 +22,10 @@ from bagof.hints.typevars.co import NONE, T
 
 # locals
 from ._compat import NoneType, UnionType
-from .base import (
-    ClassDecorator,
-    Factory,
-    FactoryRegistry,
-    get_factory,
-    register_factory,
-)
+from .base import ClassDecorator, Factory, FactoryRegistry, get_factory
 
 
-@register_factory(NoneType)
-class NoneFactory(Factory[NONE]):
+class NoneFactory(Factory[NONE], register=NoneType):
     """Factory for [`None`][] (always returns `None`)."""
 
     DEFAULT = NoneType
@@ -42,8 +35,7 @@ class NoneFactory(Factory[NONE]):
         return None
 
 
-@register_factory(tx.Union, UnionType)
-class UnionFactory(Factory[T]):
+class UnionFactory(Factory[T], register=(tx.Union, UnionType)):
     """
     Factory for [`Union`][typing.Union] hints.
 
@@ -69,8 +61,7 @@ class UnionFactory(Factory[T]):
         )
 
 
-@register_factory(tx.Literal)
-class LiteralFactory(Factory[T]):
+class LiteralFactory(Factory[T], register=tx.Literal):
     """
     Factory for [`Literal`][typing.Literal] hints.
 
@@ -88,8 +79,7 @@ class LiteralFactory(Factory[T]):
         return self.args[0]
 
 
-@register_factory(tx.TypeVar)
-class TypeVarFactory(Factory[T]):
+class TypeVarFactory(Factory[T], register=tx.TypeVar):
     """
     Factory for [`TypeVar`][typing.TypeVar] hints.
 
@@ -104,8 +94,7 @@ class TypeVarFactory(Factory[T]):
         return get_factory(self.fallback)()
 
 
-@register_factory(tx.Annotated)
-class AnnotatedFactory(Factory[T]):
+class AnnotatedFactory(Factory[T], register=tx.Annotated):
     """
     Factory for [`Annotated`][typing.Annotated] hints.
 
@@ -128,10 +117,7 @@ class AnnotatedFactory(Factory[T]):
 
     @classmethod
     def _get_factory(cls, hint: tx.Any) -> tx.Optional[Factory]:
-        factory_cls = cls._REGISTRY.get(hint)
-        if factory_cls is None:
-            return None
-        return factory_cls(hint)
+        return Factory.get(hint, registry=cls._REGISTRY, fallback=None)
 
     @property
     def factories(self) -> tx.Tuple[Factory, ...]:

@@ -11,11 +11,10 @@ import uuid
 from bagof.hints.typevars.co import T
 
 # locals
-from .base import Factory, register_factory
+from .base import Factory
 
 
-@register_factory(uuid.UUID)
-class UUIDFactory(Factory[T]):
+class UUIDFactory(Factory[T], register=uuid.UUID):
     """Factory for [`UUID`][uuid.UUID] hints (the nil UUID)."""
 
     DEFAULT = uuid.UUID

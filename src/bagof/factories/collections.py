@@ -16,35 +16,33 @@ from collections import abc
 from bagof.hints.typevars.co import ITERABLE, MAPPING, SEQUENCE
 
 # locals
-from .base import Factory, register_factory
+from .base import Factory
 
 
-@register_factory(abc.Sequence)
-class SequenceFactory(Factory[SEQUENCE]):
+class SequenceFactory(Factory[SEQUENCE], register=abc.Sequence):
     """Factory for [`Sequence`][collections.abc.Sequence] hints (a `list`)."""
 
     DEFAULT = abc.Sequence
     FALLBACK = list
 
 
-@register_factory(abc.Mapping)
-class MappingFactory(Factory[MAPPING]):
+class MappingFactory(Factory[MAPPING], register=abc.Mapping):
     """Factory for [`Mapping`][collections.abc.Mapping] hints (a `dict`)."""
 
     DEFAULT = abc.Mapping
     FALLBACK = dict
 
 
-@register_factory(abc.Set)
-class SetFactory(Factory[ITERABLE]):
+class SetFactory(Factory[ITERABLE], register=abc.Set):
     """Factory for [`Set`][collections.abc.Set] hints (a `set`)."""
 
     DEFAULT = abc.Set
     FALLBACK = set
 
 
-@register_factory(abc.Iterable, abc.Container)
-class IterableFactory(Factory[ITERABLE]):
+class IterableFactory(
+    Factory[ITERABLE], register=(abc.Iterable, abc.Container)
+):
     """
     Factory for [`Iterable`][collections.abc.Iterable] hints (a `list`).
 
@@ -57,8 +55,7 @@ class IterableFactory(Factory[ITERABLE]):
     FALLBACK = list
 
 
-@register_factory(abc.Iterator)
-class IteratorFactory(Factory[ITERABLE]):
+class IteratorFactory(Factory[ITERABLE], register=abc.Iterator):
     """Factory for [`Iterator`][collections.abc.Iterator] (empty iterator)."""
 
     DEFAULT = abc.Iterator
