@@ -17,6 +17,8 @@ enums
     Factories for enumeration types.
 numbers
     Factories for numeric types (int, float, complex, etc.).
+typeddicts
+    Factory for TypedDict types.
 uuids
     Factories for UUID types.
 """
@@ -30,6 +32,7 @@ __all__ = [
     "datetimes",
     "enums",
     "numbers",
+    "typeddicts",
     "uuids",
 ]
 
@@ -46,6 +49,7 @@ from . import (
     datetimes,
     enums,
     numbers,
+    typeddicts,
     uuids,
 )
 from .base import *  # noqa: F401, F403
@@ -62,6 +66,8 @@ from .enums import *  # noqa: F401, F403
 from .enums import __all__ as __all_enums
 from .numbers import *  # noqa: F401, F403
 from .numbers import __all__ as __all_numbers
+from .typeddicts import *  # noqa: F401, F403
+from .typeddicts import __all__ as __all_typeddicts
 from .uuids import *  # noqa: F401, F403
 from .uuids import __all__ as __all_uuids
 
@@ -72,4 +78,5 @@ __all__ += __all_common
 __all__ += __all_datetimes
 __all__ += __all_enums
 __all__ += __all_numbers
+__all__ += __all_typeddicts
 __all__ += __all_uuids

@@ -48,6 +48,8 @@ def test_public_api_is_exported() -> None:
         "DateFactory",
         "DateTimeFactory",
         "UUIDFactory",
+        "DictFactory",
+        "TypedDictFactory",
     ):
         assert name in factories.__all__
         assert hasattr(factories, name)

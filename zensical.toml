@@ -14,6 +14,7 @@ nav = [
     {"datetimes" = "api/datetimes.md"},
     {"enums" = "api/enums.md"},
     {"numbers" = "api/numbers.md"},
+    {"typeddicts" = "api/typeddicts.md"},
     {"uuids" = "api/uuids.md"},
   ]}
 ]
