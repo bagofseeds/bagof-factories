@@ -41,6 +41,17 @@ class UnionFactory(Factory[T], register=(tx.Union, UnionType)):
 
     Returns `None` if the union is optional, otherwise builds a value for
     the first member type that can be instantiated.
+
+    !!! example
+        ```pycon
+        >>> from bagof.factories import get_factory
+        >>> factory = get_factory(int | str)
+        >>> factory
+        UnionFactory(int | str)
+        >>> factory()
+        0
+        >>> get_factory(str | None)()  # optional -> None
+        ```
     """
 
     DEFAULT = tx.Union
