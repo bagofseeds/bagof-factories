@@ -14,6 +14,7 @@ from bagof.factories.collections import (
     MappingFactory,
     SequenceFactory,
     SetFactory,
+    TupleFactory,
 )
 
 
@@ -78,3 +79,53 @@ def test_iterator_is_more_specific_than_iterable() -> None:
     """`Iterator` dispatches to the iterator factory, not the iterable one."""
     assert isinstance(get_factory(abc.Iterator), IteratorFactory)
     assert isinstance(get_factory(abc.Iterable), IterableFactory)
+
+
+def test_fixed_tuple_builds_each_element() -> None:
+    """A fixed-length tuple builds a value for each element."""
+    assert get_factory(tx.Tuple[int, str])() == (0, "")
+    assert get_factory(tx.Tuple[int, str, list])() == (0, "", [])
+
+
+def test_fixed_tuple_preserves_element_types() -> None:
+    """Each built element has its annotated type."""
+    result = get_factory(tx.Tuple[int, str])()
+    assert [type(x) for x in result] == [int, str]
+
+
+def test_single_element_tuple() -> None:
+    """A one-element tuple builds a one-element value."""
+    assert get_factory(tx.Tuple[int])() == (0,)
+
+
+def test_variadic_tuple_builds_empty() -> None:
+    """A variadic tuple has no implied length, so it builds an empty tuple."""
+    assert get_factory(tx.Tuple[int, ...])() == ()
+
+
+def test_unparametrised_tuple_builds_empty() -> None:
+    """A bare tuple builds an empty tuple."""
+    assert get_factory(tuple)() == ()
+    assert get_factory(tx.Tuple)() == ()
+
+
+def test_empty_tuple_hint_builds_empty() -> None:
+    """`Tuple[()]` builds the empty tuple."""
+    assert get_factory(tx.Tuple[()])() == ()
+
+
+def test_empty_tuple_python38_representation_builds_empty() -> None:
+    """Python 3.8 spells `Tuple[()]` args as `((),)`; still build ``()``."""
+    factory = TupleFactory(tx.Tuple[int])
+    factory._args = ((),)  # simulate the Python 3.8 representation
+    assert factory() == ()
+
+
+def test_tuple_factory_directly() -> None:
+    """The tuple factory can be used directly."""
+    assert TupleFactory(tx.Tuple[int, str])() == (0, "")
+
+
+def test_nested_tuple() -> None:
+    """Nested tuples build recursively."""
+    assert get_factory(tx.Tuple[int, tx.Tuple[str, int]])() == (0, ("", 0))
