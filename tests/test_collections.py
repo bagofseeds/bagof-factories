@@ -114,6 +114,13 @@ def test_empty_tuple_hint_builds_empty() -> None:
     assert get_factory(tx.Tuple[()])() == ()
 
 
+def test_empty_tuple_python38_representation_builds_empty() -> None:
+    """Python 3.8 spells `Tuple[()]` args as `((),)`; still build ``()``."""
+    factory = TupleFactory(tx.Tuple[int])
+    factory._args = ((),)  # simulate the Python 3.8 representation
+    assert factory() == ()
+
+
 def test_tuple_factory_directly() -> None:
     """The tuple factory can be used directly."""
     assert TupleFactory(tx.Tuple[int, str])() == (0, "")

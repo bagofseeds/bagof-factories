@@ -82,7 +82,9 @@ class TupleFactory(Factory[TUPLE], register=tuple):
     def __call__(self) -> TUPLE:
         """Build a value for each element of a fixed-length tuple."""
         args = self.args
-        if not args:
+        # `Tuple[()]` is the empty tuple. Python 3.9+ represents it as `()`,
+        # but Python 3.8 represents it as `((),)` -- normalise both.
+        if not args or args == ((),):
             return ()
         if len(args) == 2 and args[1] is Ellipsis:
             return ()
