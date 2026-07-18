@@ -6,6 +6,7 @@ __all__ = [
     "SetFactory",
     "IterableFactory",
     "IteratorFactory",
+    "TupleFactory",
 ]
 
 # stdlib
@@ -13,10 +14,10 @@ import typing_extensions as tx  # noqa: I001
 from collections import abc
 
 # bags
-from bagof.hints.typevars.co import ITERABLE, MAPPING, SEQUENCE
+from bagof.hints.typevars.co import ITERABLE, MAPPING, SEQUENCE, TUPLE
 
 # locals
-from .base import Factory
+from .base import Factory, get_factory
 
 
 class SequenceFactory(Factory[SEQUENCE], register=abc.Sequence):
@@ -63,3 +64,26 @@ class IteratorFactory(Factory[ITERABLE], register=abc.Iterator):
     def __call__(self) -> tx.Iterator:
         """Return an empty iterator."""
         return iter(())
+
+
+class TupleFactory(Factory[TUPLE], register=tuple):
+    """
+    Factory for [`tuple`][] hints.
+
+    A fixed-length tuple builds a value for each element
+    (``Tuple[int, str]`` -> ``(0, "")``). A variadic tuple
+    (``Tuple[int, ...]``), an unparametrised tuple, or the empty tuple
+    (``Tuple[()]``) builds an empty tuple, since no length is implied.
+    """
+
+    DEFAULT = tuple
+    FALLBACK = tuple
+
+    def __call__(self) -> TUPLE:
+        """Build a value for each element of a fixed-length tuple."""
+        args = self.args
+        if not args:
+            return ()
+        if len(args) == 2 and args[1] is Ellipsis:
+            return ()
+        return tuple(get_factory(arg)() for arg in args)
