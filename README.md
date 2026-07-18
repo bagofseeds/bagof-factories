@@ -1,16 +1,18 @@
-# bagof-things
+# bagof-factories
 
-Template repository for `bagof` Python projects.
+Hint-based factories that build default values at runtime.
 
-This template includes:
+## Example
 
-- a `pyproject.toml` configured for a `bagof.things` package
-- a `bagof` namespace package under `src/`
-- reusable GitHub Actions for linting, testing, and publishing
-
-The workflow wrappers intentionally track `bagofseeds/actions@main` so
-template-generated repositories inherit shared CI updates without manually
-refreshing pinned workflow SHAs.
-
-When using the template, replace `things` with your project-specific package
-name.
+```pycon
+>>> from bagof.factories import get_factory
+>>> get_factory(list[int])()
+[]
+>>> get_factory(dict[str, int])()
+{}
+>>> get_factory(int)()
+0
+>>> get_factory(int | None)()  # optional -> None
+>>> get_factory(str)()
+''
+```

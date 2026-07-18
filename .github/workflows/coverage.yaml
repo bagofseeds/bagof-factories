@@ -23,9 +23,6 @@ on:
         required: false
         default: "3.x"
         type: string
-    secrets:
-      CODECOV_TOKEN: 
-        required: true
 
 permissions:
   contents: read
@@ -37,7 +34,3 @@ jobs:
       tag: ${{ inputs.tag }}
       python-version: ${{ inputs.python-version }}
       requirements-file: tests/requirements.txt
-      codecov: true
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      

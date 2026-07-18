@@ -18,4 +18,3 @@ permissions:
 jobs:
   tests:
     uses: ./.github/workflows/coverage.yaml
-    secrets: inherit
