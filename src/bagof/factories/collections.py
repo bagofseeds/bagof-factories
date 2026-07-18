@@ -3,6 +3,7 @@
 __all__ = [
     "SequenceFactory",
     "MappingFactory",
+    "DictFactory",
     "SetFactory",
     "IterableFactory",
     "IteratorFactory",
@@ -31,6 +32,13 @@ class MappingFactory(Factory[MAPPING], register=abc.Mapping):
     """Factory for [`Mapping`][collections.abc.Mapping] hints (a `dict`)."""
 
     DEFAULT = abc.Mapping
+    FALLBACK = dict
+
+
+class DictFactory(MappingFactory, register=dict):
+    """Factory for [`dict`][] hints (an empty `dict`)."""
+
+    DEFAULT = dict
     FALLBACK = dict
 
 

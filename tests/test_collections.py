@@ -9,6 +9,7 @@ import typing_extensions as tx
 # locals
 from bagof.factories import get_factory
 from bagof.factories.collections import (
+    DictFactory,
     IterableFactory,
     IteratorFactory,
     MappingFactory,
@@ -40,6 +41,19 @@ def test_get_factory_dispatches_mappings() -> None:
     """Parametrised mapping hints dispatch to the mapping factory."""
     assert get_factory(tx.Dict[str, int])() == {}
     assert get_factory(tx.Mapping[str, int])() == {}
+
+
+def test_dict_hints_dispatch_to_dict_factory() -> None:
+    """`dict` and its subclasses match the exact `dict` key."""
+    from collections import OrderedDict, defaultdict
+
+    assert isinstance(get_factory(dict), DictFactory)
+    assert isinstance(get_factory(tx.Dict[str, int]), DictFactory)
+    # subclasses of dict resolve to the dict factory via the MRO
+    assert isinstance(get_factory(OrderedDict), DictFactory)
+    assert isinstance(get_factory(defaultdict), DictFactory)
+    # ... and build their own concrete type
+    assert type(get_factory(OrderedDict)()) is OrderedDict
 
 
 def test_set_factory_builds_empty_set() -> None:
