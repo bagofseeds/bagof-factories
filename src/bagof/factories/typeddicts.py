@@ -27,6 +27,17 @@ class TypedDictFactory(MappingFactory, register=tx.TypedDict):
     A plain [`dict`][] is not a TypedDict, so it keeps using
     [`DictFactory`][bagof.factories.collections.DictFactory]: the registry
     matches `dict` to its exact key, which wins over the `TypedDict` entry.
+
+    !!! example
+        ```pycon
+        >>> import typing_extensions as tx
+        >>> from bagof.factories import get_factory
+        >>> class Movie(tx.TypedDict):
+        ...     title: str
+        ...     year: int
+        >>> get_factory(Movie)()
+        {'title': '', 'year': 0}
+        ```
     """
 
     DEFAULT = tx.TypedDict

@@ -15,7 +15,20 @@ from .base import Factory
 
 
 class EnumFactory(Factory[T], register=enum.Enum):
-    """Factory for [`Enum`][enum.Enum] subclasses (the first member)."""
+    """
+    Factory for [`Enum`][enum.Enum] subclasses (the first member).
+
+    !!! example
+        ```pycon
+        >>> import enum
+        >>> from bagof.factories import get_factory
+        >>> class Color(enum.Enum):
+        ...     RED = 1
+        ...     GREEN = 2
+        >>> get_factory(Color)()
+        <Color.RED: 1>
+        ```
+    """
 
     DEFAULT = enum.Enum
 

@@ -140,6 +140,15 @@ class Factory(MagicHint[T], metaclass=FactoryMetaclass):
         """
         Get the best-matching factory for a given type hint.
 
+        !!! example
+            ```pycon
+            >>> from bagof.factories import get_factory
+            >>> get_factory(dict[str, int])()
+            {}
+            >>> get_factory(int)()
+            0
+            ```
+
         Parameters
         ----------
         hint
