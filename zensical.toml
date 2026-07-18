@@ -8,8 +8,13 @@ nav = [
   {"API" = [
     "api/index.md",
     {"base" = "api/base.md"},
+    {"builtins" = "api/builtins.md"},
     {"collections" = "api/collections.md"},
     {"common" = "api/common.md"},
+    {"datetimes" = "api/datetimes.md"},
+    {"enums" = "api/enums.md"},
+    {"numbers" = "api/numbers.md"},
+    {"uuids" = "api/uuids.md"},
   ]}
 ]
 

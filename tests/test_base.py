@@ -36,8 +36,12 @@ def test_get_factory_returns_factory_instance() -> None:
 
 def test_get_factory_class_falls_back_to_base() -> None:
     """An unregistered hint falls back to the base `Factory` class."""
-    cls = get_factory_class(int)
-    assert isinstance(cls(int), Factory)
+
+    class Unregistered:
+        pass
+
+    cls = get_factory_class(Unregistered)
+    assert isinstance(cls(Unregistered), Factory)
 
 
 def test_get_factory_class_uses_custom_fallback() -> None:

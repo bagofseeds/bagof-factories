@@ -33,6 +33,21 @@ def test_public_api_is_exported() -> None:
         "SequenceFactory",
         "MappingFactory",
         "AnnotatedFactory",
+        "SetFactory",
+        "IterableFactory",
+        "IteratorFactory",
+        "NumberFactory",
+        "IntegralFactory",
+        "RealFactory",
+        "ComplexFactory",
+        "RationalFactory",
+        "EnumFactory",
+        "RangeFactory",
+        "SliceFactory",
+        "MemoryViewFactory",
+        "DateFactory",
+        "DateTimeFactory",
+        "UUIDFactory",
     ):
         assert name in factories.__all__
         assert hasattr(factories, name)
