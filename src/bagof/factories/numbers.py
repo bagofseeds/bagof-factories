@@ -20,7 +20,14 @@ from .base import Factory
 
 
 class NumberFactory(Factory[NUMBER], register=numbers.Number):
-    """Factory for [`Number`][numbers.Number] hints (an `int`, `0`)."""
+    """
+    Factory for [`Number`][numbers.Number] hints (an `int`, `0`).
+
+    !!! note
+        [`Number`][numbers.Number] has no abstract methods, so it is
+        technically instantiable -- but a bare `Number()` instance is
+        useless, so the concrete fallback (`int`) is built instead.
+    """
 
     DEFAULT = numbers.Number
     FALLBACK = int

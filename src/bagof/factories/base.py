@@ -172,6 +172,11 @@ class Factory(MagicHint[T], metaclass=FactoryMetaclass):
         """
         Get the best-matching factory class for a given type hint.
 
+        !!! warning
+            By default an unmatched hint returns the base
+            [`Factory`][] class, never `None`. Pass `fallback=None`
+            explicitly to get `None` back instead.
+
         Parameters
         ----------
         hint

@@ -79,9 +79,12 @@ class TupleFactory(Factory[TUPLE], register=tuple):
     Factory for [`tuple`][] hints.
 
     A fixed-length tuple builds a value for each element
-    (``Tuple[int, str]`` -> ``(0, "")``). A variadic tuple
-    (``Tuple[int, ...]``), an unparametrised tuple, or the empty tuple
-    (``Tuple[()]``) builds an empty tuple, since no length is implied.
+    (``Tuple[int, str]`` -> ``(0, "")``).
+
+    !!! note
+        A variadic tuple (``Tuple[int, ...]``), an unparametrised
+        tuple, or the empty tuple (``Tuple[()]``) builds an empty
+        tuple, since no length is implied.
     """
 
     DEFAULT = tuple
