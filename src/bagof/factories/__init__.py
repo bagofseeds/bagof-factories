@@ -1,5 +1,5 @@
 """
-Automatic type-based factories.
+Hint-based factories that build default values at runtime.
 
 Modules
 -------

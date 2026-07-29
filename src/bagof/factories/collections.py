@@ -65,7 +65,10 @@ class IterableFactory(
 
 
 class IteratorFactory(Factory[ITERABLE], register=abc.Iterator):
-    """Factory for [`Iterator`][collections.abc.Iterator] (empty iterator)."""
+    """
+    Factory for [`Iterator`][collections.abc.Iterator] (an empty
+    iterator).
+    """
 
     DEFAULT = abc.Iterator
 
