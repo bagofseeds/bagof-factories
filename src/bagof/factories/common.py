@@ -117,7 +117,10 @@ class AnnotatedFactory(Factory[T], register=tx.Annotated):
 
     @classmethod
     def register(cls, *hints: tx.Unpack[tx.Tuple[tx.Any]]) -> ClassDecorator:
-        """Register a factory class for one or more annotation metadata."""
+        """
+        Register a factory class for one or more pieces of annotation
+        metadata.
+        """
 
         def decorator(factory_cls: tx.Type[Factory]) -> tx.Type[Factory]:
             for hint in hints:
@@ -132,7 +135,11 @@ class AnnotatedFactory(Factory[T], register=tx.Annotated):
 
     @property
     def factories(self) -> tx.Tuple[Factory, ...]:
-        """The factories that apply to this annotated hint, in order."""
+        """
+        The factories that apply to this annotated hint, ordered from
+        the origin type (least specific) to the last matching metadata
+        entry (most specific, used first by `__call__`).
+        """
         origin = safe_get_origin(self.hint, unwrap=tx.Annotated)
 
         factories = []
