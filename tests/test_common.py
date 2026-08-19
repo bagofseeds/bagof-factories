@@ -51,9 +51,8 @@ def test_literal_with_none_builds_none() -> None:
 
 def test_empty_literal_raises() -> None:
     """An empty literal cannot be instantiated."""
-    factory = LiteralFactory(tx.Literal["x"])
-    factory.hint = tx.Literal  # force an argument-less literal
-    factory._args = ()
+    factory = LiteralFactory(tx.Literal)  # an argument-less literal
+    assert factory.args == ()
     with pytest.raises(TypeError):
         factory()
 
