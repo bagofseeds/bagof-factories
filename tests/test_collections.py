@@ -13,6 +13,7 @@ from bagof.factories.collections import (
     IterableFactory,
     IteratorFactory,
     MappingFactory,
+    MutableSetFactory,
     SequenceFactory,
     SetFactory,
     TupleFactory,
@@ -56,16 +57,26 @@ def test_dict_hints_dispatch_to_dict_factory() -> None:
     assert type(get_factory(OrderedDict)()) is OrderedDict
 
 
-def test_set_factory_builds_empty_set() -> None:
-    """A set hint builds an empty set."""
-    assert SetFactory(abc.Set)() == set()
-    assert type(SetFactory(abc.Set)()) is set
+def test_set_factory_builds_empty_frozenset() -> None:
+    """An `abc.Set` hint builds an empty frozenset."""
+    # `abc.Set` is the immutable interface, so a `frozenset` is the
+    # faithful fallback -- and it is what `bagof-converters`' `ToSet`
+    # already builds for the same hint.
+    assert SetFactory(abc.Set)() == frozenset()
+    assert type(SetFactory(abc.Set)()) is frozenset
+
+
+def test_mutable_set_factory_builds_empty_set() -> None:
+    """A `MutableSet` hint builds an empty (mutable) set."""
+    assert type(MutableSetFactory(abc.MutableSet)()) is set
 
 
 def test_get_factory_dispatches_sets() -> None:
-    """Abstract and mutable set hints dispatch to the set factory."""
-    assert get_factory(tx.AbstractSet[int])() == set()
-    assert get_factory(tx.MutableSet[int])() == set()
+    """Abstract and mutable set hints dispatch to the right factory."""
+    assert type(get_factory(tx.AbstractSet[int])()) is frozenset
+    assert type(get_factory(tx.MutableSet[int])()) is set
+    assert type(get_factory(set)()) is set
+    assert type(get_factory(frozenset)()) is frozenset
 
 
 def test_iterable_factory_builds_empty_list() -> None:
