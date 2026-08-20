@@ -10,6 +10,7 @@ __all__ = [
 
 # stdlib
 import fractions
+import inspect
 import numbers
 
 # bags
@@ -33,10 +34,17 @@ class NumberFactory(Factory[NUMBER], register=numbers.Number):
     FALLBACK = int
 
     def __call__(self) -> NUMBER:
-        # `numbers.Number` has no abstract methods, so it is technically
-        # instantiable -- but a bare `Number()` instance is useless, so
-        # build the concrete fallback (`int`) explicitly.
-        return self.FALLBACK()
+        fallback = self.fallback
+        if fallback is numbers.Number or inspect.isabstract(fallback):
+            # `numbers.Number` has no abstract methods, so it is
+            # technically instantiable -- but a bare `Number()` instance
+            # is useless, so build the concrete `FALLBACK` (`int`).
+            fallback = self.FALLBACK
+        # Otherwise use the hint's own fallback. Reaching for the
+        # `FALLBACK` class attribute unconditionally meant every
+        # `numbers.Number` subclass without its own registration
+        # (`Decimal`, and any user-defined one) built an `int` instead.
+        return fallback()
 
 
 class ComplexFactory(Factory[NUMBER], register=numbers.Complex):

@@ -1,6 +1,7 @@
 """Tests for the numeric factories."""
 
 # stdlib
+import decimal
 import fractions
 import numbers
 
@@ -49,3 +50,36 @@ def test_concrete_numeric_types_are_unaffected() -> None:
     assert get_factory(float)() == 0.0
     assert get_factory(complex)() == 0j
     assert get_factory(bool)() is False
+
+
+def test_number_subclasses_build_themselves() -> None:
+    """A `Number` subclass builds *itself*, not the abstract fallback."""
+    # `NumberFactory.__call__` returned the `FALLBACK` class attribute
+    # (always `int`), ignoring the fallback resolved from the hint -- so
+    # every `numbers.Number` subclass without its own registration built
+    # an `int` instead of itself.
+    result = get_factory(decimal.Decimal)()
+    assert result == 0
+    assert type(result) is decimal.Decimal
+
+
+def test_user_defined_number_subclass_builds_itself() -> None:
+
+    class MyNumber(numbers.Number):
+        def __init__(self, value: int = 0) -> None:
+            self.value = value
+
+    result = get_factory(MyNumber)()
+    assert type(result) is MyNumber
+
+
+def test_number_factory_handles_every_numeric_tower_rung() -> None:
+    expected = {
+        numbers.Number: int,
+        numbers.Complex: complex,
+        numbers.Real: float,
+        numbers.Rational: fractions.Fraction,
+        numbers.Integral: int,
+    }
+    for hint, want in expected.items():
+        assert type(get_factory(hint)()) is want, hint
