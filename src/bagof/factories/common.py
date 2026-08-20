@@ -194,6 +194,12 @@ class AnnotatedFactory(Factory[T], register=tx.Annotated):
                 # Look into annotation registry
                 arg = self._get_factory(arg)
             if safe_isinstance(arg, Factory):
+                if not arg.has_explicit_hint:
+                    # A metadata factory written without a hint of its own
+                    # builds the annotated type. It is used in preference
+                    # to the origin factory, so keeping its class
+                    # `DEFAULT` would build the wrong type entirely.
+                    arg = arg.rebind(origin)
                 factories.append(arg)
 
         factories.insert(0, get_factory(origin))
