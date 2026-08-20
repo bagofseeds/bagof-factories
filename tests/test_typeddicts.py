@@ -87,7 +87,7 @@ def test_annotated_field_metadata_reaches_its_factory() -> None:
     class Marker:
         pass
 
-    @AnnotatedFactory.register(Marker)
+    @AnnotatedFactory.register_metadata(Marker)
     class MarkedFactory(Factory):
         DEFAULT = int
 

@@ -126,10 +126,16 @@ class AnnotatedFactory(Factory[T], register=tx.Annotated):
     _REGISTRY: FactoryRegistry = {}
 
     @classmethod
-    def register(cls, *hints: tx.Unpack[tx.Tuple[tx.Any]]) -> ClassDecorator:
+    def register_metadata(
+        cls, *hints: tx.Unpack[tx.Tuple[tx.Any, ...]]
+    ) -> ClassDecorator:
         """
         Register a factory class for one or more pieces of annotation
         metadata.
+
+        Distinct from [`Factory.register`][], which registers a factory
+        for a *type hint* in the global registry; this one registers it
+        for a piece of `Annotated` **metadata**.
         """
 
         def decorator(factory_cls: tx.Type[Factory]) -> tx.Type[Factory]:
@@ -138,6 +144,11 @@ class AnnotatedFactory(Factory[T], register=tx.Annotated):
             return factory_cls
 
         return decorator
+
+    # Deprecated alias. `register` means "register for a type hint"
+    # everywhere else, and a bare `@AnnotatedFactory.register` used to
+    # silently register the decorated class as a metadata *key*.
+    register = register_metadata
 
     @classmethod
     def _get_factory(cls, hint: tx.Any) -> tx.Optional[Factory]:
