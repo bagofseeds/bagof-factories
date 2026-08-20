@@ -163,3 +163,25 @@ def test_register_accepts_several_hints() -> None:
     Factory.register(Multi, _A, _B, registry=registry)
     assert registry[_A] is Multi
     assert registry[_B] is Multi
+
+
+def test_register_true_registers_the_default_hint() -> None:
+    """`register=True` in the class kwargs registers `DEFAULT`."""
+    class _Registered:
+        pass
+
+    class ForDefault(Factory, register=True):
+        DEFAULT = _Registered
+
+    assert get_factory_class(_Registered) is ForDefault
+
+
+def test_register_a_single_hint_without_a_tuple() -> None:
+    """`register=<hint>` is accepted as well as `register=(<hint>,)`."""
+    class _Single:
+        pass
+
+    class ForSingle(Factory, register=_Single):
+        DEFAULT = _Single
+
+    assert get_factory_class(_Single) is ForSingle
