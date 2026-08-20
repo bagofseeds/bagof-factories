@@ -131,7 +131,21 @@ class AnnotatedFactory(Factory[T], register=tx.Annotated):
 
     @classmethod
     def _get_factory(cls, hint: tx.Any) -> tx.Optional[Factory]:
-        return Factory.get(hint, registry=cls._REGISTRY, fallback=None)
+        factory = Factory.get(hint, registry=cls._REGISTRY, fallback=None)
+        if factory is not None:
+            return factory
+        # Metadata is usually an *instance* (e.g. `re.compile(...)`),
+        # whereas the registry is keyed by its type (e.g. `re.Pattern`),
+        # so fall back to a lookup by type and pass the metadata itself
+        # to the factory's constructor. Both sibling packages do this;
+        # without it, only metadata registered by identity is ever found.
+        if not isinstance(hint, type):
+            factory_cls = Factory.get_class(
+                type(hint), registry=cls._REGISTRY, fallback=None
+            )
+            if factory_cls is not None:
+                return factory_cls(hint)
+        return None
 
     @property
     def factories(self) -> tx.Tuple[Factory, ...]:
@@ -140,13 +154,22 @@ class AnnotatedFactory(Factory[T], register=tx.Annotated):
         the origin type (least specific) to the last matching metadata
         entry (most specific, used first by `__call__`).
         """
+        if getattr(self, "_factories", None) is None:
+            self._factories = self._get_factories()
+        return self._factories
+
+    def _get_factories(self) -> tx.Tuple[Factory, ...]:
         origin = safe_get_origin(self.hint, unwrap=tx.Annotated)
 
         factories = []
         for arg in safe_get_args(self.hint):
             if safe_issubclass(arg, Factory):
-                arg = arg(origin)
-            if not isinstance(arg, Factory):
+                # Bind by keyword, so a factory class that needs its own
+                # configuration fails with a `TypeError` naming what it
+                # is missing rather than silently taking the annotated
+                # type as that argument.
+                arg = arg(hint=origin)
+            if not safe_isinstance(arg, Factory):
                 # Look into annotation registry
                 arg = self._get_factory(arg)
             if safe_isinstance(arg, Factory):
@@ -157,6 +180,7 @@ class AnnotatedFactory(Factory[T], register=tx.Annotated):
 
     def __call__(self) -> T:
         """Build a value using the most specific applicable factory."""
-        for factory in reversed(self.factories):
-            return factory()
-        raise TypeError(f"Cannot instantiate value for {self.hint}")
+        # The last entry wins: `factories` is ordered least- to
+        # most-specific, and the origin factory is always at index 0, so
+        # there is always at least one.
+        return self.factories[-1]()
