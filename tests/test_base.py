@@ -142,3 +142,24 @@ def test_register_called_directly_with_class() -> None:
 def test_get_returns_none_when_fallback_is_none() -> None:
     """`Factory.get` returns `None` when nothing matches and fallback=None."""
     assert Factory.get(int, {}, fallback=None) is None
+
+
+def test_register_accepts_several_hints() -> None:
+    """`register` takes any number of hints, as its docstring says."""
+    # The overloads annotated `*hints` as `Unpack[Tuple[Any]]` -- a
+    # *one*-element tuple, so "exactly one hint" -- while the
+    # implementation and the docstring both say "one or more".
+    registry: tx.Dict[tx.Any, tx.Any] = {}
+
+    class _A:
+        pass
+
+    class _B:
+        pass
+
+    class Multi(Factory):
+        DEFAULT = _A
+
+    Factory.register(Multi, _A, _B, registry=registry)
+    assert registry[_A] is Multi
+    assert registry[_B] is Multi
