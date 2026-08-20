@@ -97,3 +97,10 @@ def test_empty_literal_and_enum_stay_type_errors() -> None:
         LiteralFactory(tx.Literal)()
     with pytest.raises(TypeError):
         EnumFactory(Empty)()
+
+
+def test_factory_error_accepts_the_factory_alias() -> None:
+    """`factory=` is accepted as a spelling of `this=`."""
+    factory = get_factory(int)
+    error = FactoryError("boom", factory=factory)
+    assert error.this is factory
