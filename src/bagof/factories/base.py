@@ -129,14 +129,14 @@ class Factory(MagicHint[T], metaclass=FactoryMetaclass):
     @staticmethod
     def register(
         factory: tx.Type["Factory"],
-        *hints: tx.Unpack[tx.Tuple[tx.Any]],
+        *hints: tx.Unpack[tx.Tuple[tx.Any, ...]],
         registry: FactoryRegistry = ...,
     ) -> tx.Type["Factory"]: ...
 
     @tx.overload
     @staticmethod
     def register(
-        *hints: tx.Unpack[tx.Tuple[tx.Any]],
+        *hints: tx.Unpack[tx.Tuple[tx.Any, ...]],
         registry: FactoryRegistry = ...,
     ) -> ClassDecorator: ...
 
