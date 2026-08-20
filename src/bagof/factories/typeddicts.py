@@ -48,7 +48,10 @@ class TypedDictFactory(MappingFactory, register=tx.TypedDict):
     def __call__(self) -> tx.Any:
         """Build a dict of the required keys, each from its annotation."""
         cls = safe_get_origin(self.hint)
-        hints = tx.get_type_hints(cls)
+        # `include_extras=True`, so `Annotated` metadata on a field
+        # survives and can reach `AnnotatedFactory`. Without it the
+        # metadata is stripped before `get_factory` ever sees the field.
+        hints = tx.get_type_hints(cls, include_extras=True)
         required = getattr(cls, "__required_keys__", frozenset(hints))
         return {
             key: get_factory(hint)()
