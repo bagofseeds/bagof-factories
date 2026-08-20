@@ -99,7 +99,7 @@ def test_annotated_resolves_a_metadata_instance() -> None:
     class Marker:
         pass
 
-    @AnnotatedFactory.register(Marker)
+    @AnnotatedFactory.register_metadata(Marker)
     class MarkedFactory(Factory):
         DEFAULT = int
 
@@ -126,3 +126,38 @@ def test_annotated_resolves_a_metadata_instance() -> None:
 def test_annotated_without_metadata_falls_back_to_the_origin() -> None:
     assert get_factory(tx.Annotated[str, "meta"])() == ""
     assert get_factory(tx.Annotated[tx.List[int], "meta"])() == []
+
+
+def test_register_metadata_is_distinct_from_register() -> None:
+    # locals
+    from bagof.factories.base import FACTORIES
+
+    class Marker:
+        pass
+
+    @AnnotatedFactory.register_metadata(Marker)
+    class MarkedFactory(Factory):
+        DEFAULT = int
+
+        def __init__(
+            self, marker: tx.Any = None, hint: tx.Any = None
+        ) -> None:
+            super().__init__(int)
+            self.marker = marker
+
+        def __call__(self) -> int:
+            return 7
+
+    try:
+        assert AnnotatedFactory._REGISTRY[Marker] is MarkedFactory
+        assert Marker not in FACTORIES
+        assert get_factory(tx.Annotated[int, Marker()])() == 7
+    finally:
+        AnnotatedFactory._REGISTRY.pop(Marker, None)
+
+
+def test_register_alias_still_works() -> None:
+    assert (
+        AnnotatedFactory.register.__func__
+        is AnnotatedFactory.register_metadata.__func__
+    )
