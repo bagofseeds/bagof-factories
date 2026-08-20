@@ -4,8 +4,10 @@
 import pytest
 import typing_extensions as tx
 
-# locals
 from bagof.factories import get_factory
+
+# locals
+from bagof.factories.base import Factory
 from bagof.factories.common import (
     AnnotatedFactory,
     LiteralFactory,
@@ -72,3 +74,55 @@ def test_annotated_factories_property_includes_origin() -> None:
     """The annotated factories always include the origin factory first."""
     factory = AnnotatedFactory(tx.Annotated[int, "meta"])
     assert len(factory.factories) >= 1
+
+
+# ----------------------------------------------------------------------
+# AnnotatedFactory
+# ----------------------------------------------------------------------
+
+
+def test_annotated_factories_are_cached() -> None:
+    # Both sibling packages memoise their metadata chain; this one walked
+    # the registry again on every access.
+    factory = get_factory(tx.Annotated[int, "meta"])
+    assert factory.factories is factory.factories
+
+
+def test_annotated_uses_the_most_specific_factory() -> None:
+    factory = get_factory(tx.Annotated[int, "meta"])
+    assert factory.factories[-1] is not None
+    assert factory() == 0
+
+
+def test_annotated_resolves_a_metadata_instance() -> None:
+
+    class Marker:
+        pass
+
+    @AnnotatedFactory.register(Marker)
+    class MarkedFactory(Factory):
+        DEFAULT = int
+
+        def __init__(
+            self, marker: tx.Any = None, hint: tx.Any = None
+        ) -> None:
+            super().__init__(int)
+            self.marker = marker
+
+        def __call__(self) -> int:
+            return 42
+
+    try:
+        # Metadata is usually an instance and the registry is keyed by
+        # its type, so without a `type(hint)` fallback only metadata
+        # registered by identity could ever be found.
+        assert get_factory(tx.Annotated[int, Marker()])() == 42
+        # A bare class key still resolves directly.
+        assert get_factory(tx.Annotated[int, Marker])() == 42
+    finally:
+        AnnotatedFactory._REGISTRY.pop(Marker, None)
+
+
+def test_annotated_without_metadata_falls_back_to_the_origin() -> None:
+    assert get_factory(tx.Annotated[str, "meta"])() == ""
+    assert get_factory(tx.Annotated[tx.List[int], "meta"])() == []
