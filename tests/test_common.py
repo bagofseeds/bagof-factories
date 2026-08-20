@@ -4,9 +4,10 @@
 import pytest
 import typing_extensions as tx
 
-from bagof.factories import get_factory
-
 # locals
+from bagof.core.magic import UNSET
+
+from bagof.factories import get_factory
 from bagof.factories.base import Factory
 from bagof.factories.common import (
     AnnotatedFactory,
@@ -161,3 +162,55 @@ def test_register_alias_still_works() -> None:
         AnnotatedFactory.register.__func__
         is AnnotatedFactory.register_metadata.__func__
     )
+
+
+def test_annotated_metadata_factory_adopts_the_annotated_type() -> None:
+    # locals
+    from bagof.factories.base import Factory
+
+    class Marker:
+        pass
+
+    class MarkedFactory(Factory):
+        DEFAULT = int
+
+        def __init__(
+            self, marker: tx.Any = None, hint: tx.Any = UNSET
+        ) -> None:
+            super().__init__(hint)
+            self.marker = marker
+
+    AnnotatedFactory.register_metadata(Marker)(MarkedFactory)
+    try:
+        # The metadata factory is used in preference to the origin one,
+        # so keeping its class `DEFAULT` would build the wrong type.
+        factory = get_factory(tx.Annotated[str, Marker()])
+        assert factory.factories[-1].hint is str
+        assert factory() == ""
+        # ... and it keeps its own configuration.
+        assert isinstance(factory.factories[-1].marker, Marker)
+    finally:
+        AnnotatedFactory._REGISTRY.pop(Marker, None)
+
+
+def test_annotated_metadata_factory_explicit_hint_is_respected() -> None:
+    # locals
+    from bagof.factories.base import Factory
+
+    class Marker:
+        pass
+
+    class PinnedFactory(Factory):
+        DEFAULT = int
+
+        def __init__(self, marker: tx.Any = None) -> None:
+            super().__init__(int)  # explicit, always
+            self.marker = marker
+
+    AnnotatedFactory.register_metadata(Marker)(PinnedFactory)
+    try:
+        factory = get_factory(tx.Annotated[str, Marker()])
+        assert factory.factories[-1].hint is int
+        assert factory() == 0
+    finally:
+        AnnotatedFactory._REGISTRY.pop(Marker, None)
