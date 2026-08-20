@@ -13,6 +13,7 @@ import typing_extensions as tx  # noqa: I001
 
 # bags
 from bagof.core.magic import (
+    MultipleCauses,
     safe_get_args,
     safe_get_origin,
     safe_isinstance,
@@ -23,6 +24,7 @@ from bagof.hints.typevars.co import NONE, T
 # locals
 from ._compat import NoneType, UnionType
 from .base import ClassDecorator, Factory, FactoryRegistry, get_factory
+from .exceptions import FactoryError
 
 
 class NoneFactory(Factory[NONE], register=NoneType):
@@ -60,16 +62,22 @@ class UnionFactory(Factory[T], register=(tx.Union, UnionType)):
         """Build a value for the first instantiable member of the union."""
         if NoneType in self.args:
             return None
+        errors = []
         for arg in self.args:
+            factory = get_factory(arg)
             try:
-                factory = get_factory(arg)
                 return factory()
-            except TypeError:
+            except FactoryError as e:
+                # Only a factory failure means "this member cannot be
+                # built". Catching bare `TypeError` swallowed genuine bugs
+                # in a member factory, and missed a member that failed with
+                # a `ValueError` -- which killed the whole union.
+                errors.append(e)
                 continue
-        raise TypeError(
+        raise self.type_error(
             "Cannot create an instance of any of the union types: "
             f"{' | '.join(str(arg) for arg in self.args)}"
-        )
+        ) from MultipleCauses(errors)
 
 
 class LiteralFactory(Factory[T], register=tx.Literal):
@@ -84,7 +92,9 @@ class LiteralFactory(Factory[T], register=tx.Literal):
     def __call__(self) -> T:
         """Return the first value of the literal."""
         if not self.args:
-            raise TypeError("Cannot create an instance of an empty literal")
+            raise self.type_error(
+                "Cannot create an instance of an empty literal"
+            )
         if None in self.args:
             return None
         return self.args[0]
