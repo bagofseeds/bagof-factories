@@ -1,6 +1,10 @@
 """Tests for the TypedDict factory."""
 
+# stdlib
+import typing as std_typing
+
 # dependencies
+import pytest
 import typing_extensions as tx
 
 # locals
@@ -117,3 +121,39 @@ def test_annotated_field_without_metadata_factory_uses_the_type() -> None:
         retries: tx.Annotated[int, "just a note"]
 
     assert get_factory(Config)() == {"retries": 0}
+
+
+@pytest.mark.parametrize("TD", [tx.TypedDict, std_typing.TypedDict])
+def test_typeddict_works_in_either_spelling(TD: tx.Any) -> None:
+    # `typing.TypedDict` and `typing_extensions.TypedDict` are distinct
+    # objects, so the `tx.TypedDict` registry key used to miss the
+    # `typing` one, which fell through to `DictFactory` and built an
+    # empty dict with every required key missing.
+    class Film(TD):
+        title: str
+        year: int
+
+    assert get_factory(Film)() == {"title": "", "year": 0}
+
+
+@pytest.mark.parametrize("TD", [tx.TypedDict, std_typing.TypedDict])
+def test_inherited_typeddict_builds_every_required_key(TD: tx.Any) -> None:
+    class Film(TD):
+        title: str
+
+    class Extended(Film):
+        rating: int
+
+    assert get_factory(Extended)() == {"title": "", "rating": 0}
+
+
+@pytest.mark.parametrize("TD", [tx.TypedDict, std_typing.TypedDict])
+def test_inherited_totality_in_either_spelling(TD: tx.Any) -> None:
+    class Base(TD, total=False):
+        optional_key: int
+
+    class Child(Base):
+        required_key: int
+
+    # Only the child's own key is required, so only it is built.
+    assert get_factory(Child)() == {"required_key": 0}

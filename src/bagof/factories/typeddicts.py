@@ -8,7 +8,7 @@ __all__ = [
 import typing_extensions as tx  # noqa: I001
 
 # bags
-from bagof.core.magic import safe_get_origin
+from bagof.core.magic import safe_get_origin, typeddict_required_keys
 
 # locals
 from .base import get_factory
@@ -52,7 +52,10 @@ class TypedDictFactory(MappingFactory, register=tx.TypedDict):
         # survives and can reach `AnnotatedFactory`. Without it the
         # metadata is stripped before `get_factory` ever sees the field.
         hints = tx.get_type_hints(cls, include_extras=True)
-        required = getattr(cls, "__required_keys__", frozenset(hints))
+        # Shared with the sibling packages, so all three agree -- and it
+        # falls back to `__total__` where the class has no
+        # `__required_keys__`, which is `typing.TypedDict` before 3.9.
+        required = typeddict_required_keys(cls)
         return {
             key: get_factory(hint)()
             for key, hint in hints.items()
