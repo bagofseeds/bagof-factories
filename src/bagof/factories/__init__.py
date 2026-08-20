@@ -31,6 +31,7 @@ __all__ = [
     "common",
     "datetimes",
     "enums",
+    "exceptions",
     "numbers",
     "typeddicts",
     "uuids",
@@ -48,6 +49,7 @@ from . import (
     common,
     datetimes,
     enums,
+    exceptions,
     numbers,
     typeddicts,
     uuids,
@@ -64,6 +66,8 @@ from .datetimes import *  # noqa: F401, F403
 from .datetimes import __all__ as __all_datetimes
 from .enums import *  # noqa: F401, F403
 from .enums import __all__ as __all_enums
+from .exceptions import *  # noqa: F401, F403
+from .exceptions import __all__ as __all_exceptions
 from .numbers import *  # noqa: F401, F403
 from .numbers import __all__ as __all_numbers
 from .typeddicts import *  # noqa: F401, F403
@@ -77,6 +81,7 @@ __all__ += __all_collections
 __all__ += __all_common
 __all__ += __all_datetimes
 __all__ += __all_enums
+__all__ += __all_exceptions
 __all__ += __all_numbers
 __all__ += __all_typeddicts
 __all__ += __all_uuids

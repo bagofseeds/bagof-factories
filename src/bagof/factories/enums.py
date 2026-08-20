@@ -39,4 +39,4 @@ class EnumFactory(Factory[T], register=enum.Enum):
         """Return the first member of the enumeration."""
         for member in self.origin:
             return member
-        raise TypeError(f"Cannot instantiate empty enum {self.origin}")
+        raise self.type_error(f"Cannot instantiate empty enum {self.origin}")

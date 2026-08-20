@@ -20,6 +20,9 @@ from bagof.core.magic import (
 )
 from bagof.hints.typevars.co import T
 
+# locals
+from .exceptions import FactoryError, TypeFactoryError, ValueFactoryError
+
 # typing
 ClassDecorator: tx.TypeAlias = tx.Callable[[T], T]
 """A class decorator (that takes a class and returns a class)."""
@@ -75,7 +78,52 @@ class Factory(MagicHint[T], metaclass=FactoryMetaclass):
 
     def __call__(self) -> T:
         """Build a value for the hint from its fallback type."""
-        return self.fallback()
+        fallback = self.fallback
+        try:
+            return fallback()
+        except (TypeError, ValueError) as e:
+            # A constructor that needs arguments (or rejects none) raises a
+            # plain builtin. Wrap it here, where it happens, so callers see
+            # a `FactoryError` naming the hint -- and so `UnionFactory` can
+            # tell "this member cannot be built" from "a member factory is
+            # broken" without catching the builtins itself.
+            raise self.type_error(
+                f"Cannot build a value for {self.hint}: "
+                f"{fallback!r} could not be constructed with no arguments."
+            ) from e
+
+    def error(
+        self, message: tx.Optional[str] = None, **kwargs: tx.Any
+    ) -> FactoryError:
+        """
+        Return a [`FactoryError`][] with the given message.
+
+        !!! note
+            A factory takes no input, so -- unlike its
+            `Validator`/`Converter` counterparts -- `message` comes first
+            and there is no `value` argument.
+        """
+        type = kwargs.pop("type", FactoryError)
+        type = {
+            "value": ValueFactoryError,
+            "type": TypeFactoryError,
+        }.get(type, type)
+        kwargs.setdefault("this", self)
+        if message is None:
+            message = f"Cannot build a value for {self.hint}."
+        return type(message, **kwargs)
+
+    def type_error(
+        self, message: tx.Optional[str] = None, **kwargs: tx.Any
+    ) -> TypeFactoryError:
+        """Return a [`TypeFactoryError`][] with the given message."""
+        return self.error(message, type=TypeFactoryError, **kwargs)
+
+    def value_error(
+        self, message: tx.Optional[str] = None, **kwargs: tx.Any
+    ) -> ValueFactoryError:
+        """Return a [`ValueFactoryError`][] with the given message."""
+        return self.error(message, type=ValueFactoryError, **kwargs)
 
     @tx.overload
     @staticmethod
