@@ -77,3 +77,43 @@ def test_plain_dict_is_not_hijacked() -> None:
 def test_typeddict_dispatches_to_typeddict_factory() -> None:
     """A TypedDict hint dispatches to the TypedDict factory, not to dict."""
     assert isinstance(get_factory(Movie), TypedDictFactory)
+
+
+def test_annotated_field_metadata_reaches_its_factory() -> None:
+    # locals
+    from bagof.factories.base import Factory
+    from bagof.factories.common import AnnotatedFactory
+
+    class Marker:
+        pass
+
+    @AnnotatedFactory.register(Marker)
+    class MarkedFactory(Factory):
+        DEFAULT = int
+
+        def __init__(
+            self, marker: tx.Any = None, hint: tx.Any = None
+        ) -> None:
+            super().__init__(int)
+            self.marker = marker
+
+        def __call__(self) -> int:
+            return 42
+
+    class Config(tx.TypedDict):
+        retries: tx.Annotated[int, Marker()]
+        name: str
+
+    try:
+        # `get_type_hints` without `include_extras=True` stripped the
+        # metadata before `get_factory` ever saw the field.
+        assert get_factory(Config)() == {"retries": 42, "name": ""}
+    finally:
+        AnnotatedFactory._REGISTRY.pop(Marker, None)
+
+
+def test_annotated_field_without_metadata_factory_uses_the_type() -> None:
+    class Config(tx.TypedDict):
+        retries: tx.Annotated[int, "just a note"]
+
+    assert get_factory(Config)() == {"retries": 0}
