@@ -5,6 +5,7 @@ __all__ = [
     "MappingFactory",
     "DictFactory",
     "SetFactory",
+    "MutableSetFactory",
     "IterableFactory",
     "IteratorFactory",
     "TupleFactory",
@@ -43,9 +44,22 @@ class DictFactory(MappingFactory, register=dict):
 
 
 class SetFactory(Factory[ITERABLE], register=abc.Set):
-    """Factory for [`Set`][collections.abc.Set] hints (a `set`)."""
+    """
+    Factory for [`Set`][collections.abc.Set] hints (a `frozenset`).
+
+    [`Set`][collections.abc.Set] is the immutable interface, so it builds
+    a [`frozenset`][]; [`MutableSet`][collections.abc.MutableSet] builds
+    a [`set`][].
+    """
 
     DEFAULT = abc.Set
+    FALLBACK = frozenset
+
+
+class MutableSetFactory(SetFactory, register=(abc.MutableSet, set)):
+    """Factory for [`MutableSet`][collections.abc.MutableSet] (a `set`)."""
+
+    DEFAULT = abc.MutableSet
     FALLBACK = set
 
 
