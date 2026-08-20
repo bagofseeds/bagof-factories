@@ -79,9 +79,15 @@ def test_unregistered_registry_uses_fallback_base() -> None:
 
 
 def test_base_factory_cannot_build_any() -> None:
-    """The base factory cannot instantiate a pure `Any` hint."""
+    """The *base* factory still cannot instantiate a pure `Any` hint."""
+    # `Any` has its own factory now, so reach the base one directly.
     with pytest.raises(TypeError):
-        get_factory(tx.Any)()
+        Factory(tx.Any)()
+
+
+def test_any_hint_builds_none() -> None:
+    """A registered `Any` factory builds `None`."""
+    assert get_factory(tx.Any)() is None
 
 
 def test_module_functions_are_aliases_of_static_methods() -> None:
