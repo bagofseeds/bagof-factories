@@ -9,6 +9,7 @@ __all__ = [
     "IterableFactory",
     "IteratorFactory",
     "TupleFactory",
+    "NamedTupleFactory",
 ]
 
 # stdlib
@@ -109,6 +110,12 @@ class TupleFactory(Factory[TUPLE], register=tuple):
 
     def __call__(self) -> TUPLE:
         """Build a value for each element of a fixed-length tuple."""
+        origin = self.origin
+        if _is_namedtuple(origin):
+            # A NamedTuple is a `tuple` subclass with no `__args__`, so it
+            # would otherwise look variadic and build a bare `()` -- a
+            # value of the wrong type. Its fields are in `__annotations__`.
+            return NamedTupleFactory(self.hint)()
         args = self.args
         # `Tuple[()]` is the empty tuple. Python 3.9+ represents it as `()`,
         # but Python 3.8 represents it as `((),)` -- normalise both.
@@ -117,3 +124,57 @@ class TupleFactory(Factory[TUPLE], register=tuple):
         if len(args) == 2 and args[1] is Ellipsis:
             return ()
         return tuple(get_factory(arg)() for arg in args)
+
+
+def _is_namedtuple(origin: tx.Any) -> bool:
+    """Whether `origin` is a NamedTuple class rather than a plain tuple."""
+    return (
+        isinstance(origin, type)
+        and issubclass(origin, tuple)
+        and hasattr(origin, "_fields")
+        and hasattr(origin, "_field_defaults")
+    )
+
+
+class NamedTupleFactory(Factory[TUPLE]):
+    """
+    Factory for [`NamedTuple`][typing.NamedTuple] subclasses.
+
+    Builds a real instance, taking each field's declared default where
+    there is one and otherwise building a value from the field's
+    annotation -- the same shape
+    [`TypedDictFactory`][bagof.factories.typeddicts.TypedDictFactory]
+    has for dicts.
+
+    !!! note
+        A NamedTuple is a plain `tuple` subclass at runtime, so it cannot
+        be a registry key of its own;
+        [`TupleFactory`][bagof.factories.collections.TupleFactory]
+        recognises one and delegates here.
+
+    !!! example
+        ```pycon
+        >>> import typing_extensions as tx
+        >>> from bagof.factories import get_factory
+        >>> class Point(tx.NamedTuple):
+        ...     x: int
+        ...     y: str = "origin"
+        >>> get_factory(Point)()
+        Point(x=0, y='origin')
+        ```
+    """
+
+    DEFAULT = tuple
+
+    def __call__(self) -> TUPLE:
+        """Build an instance, field by field."""
+        cls = self.origin
+        defaults = cls._field_defaults
+        hints = tx.get_type_hints(cls, include_extras=True)
+        values = {}
+        for name in cls._fields:
+            if name in defaults:
+                values[name] = defaults[name]
+            else:
+                values[name] = get_factory(hints.get(name, tx.Any))()
+        return cls(**values)

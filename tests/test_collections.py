@@ -4,6 +4,7 @@
 from collections import abc
 
 # dependencies
+import pytest
 import typing_extensions as tx
 
 # locals
@@ -154,3 +155,56 @@ def test_tuple_factory_directly() -> None:
 def test_nested_tuple() -> None:
     """Nested tuples build recursively."""
     assert get_factory(tx.Tuple[int, tx.Tuple[str, int]])() == (0, ("", 0))
+
+
+# ----------------------------------------------------------------------
+# NamedTuple
+# ----------------------------------------------------------------------
+
+
+class _Point(tx.NamedTuple):
+    x: int
+    y: str = "origin"
+
+
+class _Nested(tx.NamedTuple):
+    point: _Point
+    tags: tx.List[str]
+
+
+def test_namedtuple_builds_a_real_instance() -> None:
+    # A NamedTuple has no `__args__`, so it looked variadic to
+    # `TupleFactory` and built a bare `()` -- a value of the wrong type.
+    built = get_factory(_Point)()
+    assert built == _Point(x=0, y="origin")
+    assert type(built) is _Point
+
+
+def test_namedtuple_honours_field_defaults() -> None:
+    assert get_factory(_Point)().y == "origin"
+
+
+def test_namedtuple_builds_fields_recursively() -> None:
+    built = get_factory(_Nested)()
+    assert built == _Nested(point=_Point(0, "origin"), tags=[])
+    assert type(built.point) is _Point
+
+
+def test_namedtuple_result_is_a_valid_instance_of_its_own_type() -> None:
+    built = get_factory(_Point)()
+    assert isinstance(built, _Point)
+    assert built.x == 0
+
+
+@pytest.mark.parametrize(
+    "hint,expected",
+    [
+        (tx.Tuple[int, str], (0, "")),
+        (tx.Tuple[int, ...], ()),
+        (tuple, ()),
+    ],
+)
+def test_plain_tuples_are_unaffected(hint: tx.Any, expected: tx.Any) -> None:
+    built = get_factory(hint)()
+    assert built == expected
+    assert type(built) is tuple
