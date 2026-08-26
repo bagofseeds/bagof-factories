@@ -105,14 +105,26 @@ class TypeVarFactory(Factory[T], register=tx.TypeVar):
     Factory for [`TypeVar`][typing.TypeVar] hints.
 
     Builds a value for the type the typevar resolves to (its default, bound
-    or constraints).
+    or constraints). A typevar with none of the three stands for any type at
+    all, so there is nothing to build and this raises.
     """
 
     DEFAULT = tx.TypeVar("T")
 
     def __call__(self) -> T:
         """Build a value for the type the typevar resolves to."""
-        return get_factory(self.fallback)()
+        fallback = self.fallback
+        if fallback is self.hint:
+            # Nothing to resolve to: a typevar with no default, bound or
+            # constraints falls back to itself, so building from the
+            # fallback would arrive back here and never stop.
+            raise self.type_error(
+                f"Cannot build a value for {self.hint}: a typevar with no "
+                f"default, bound or constraints stands for any type at all, "
+                f"so there is nothing to build. Give it one of the three, or "
+                f"ask for the type you want."
+            )
+        return get_factory(fallback)()
 
 
 class AnnotatedFactory(Factory[T], register=tx.Annotated):
