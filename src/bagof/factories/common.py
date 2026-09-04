@@ -15,9 +15,9 @@ import typing_extensions as tx  # noqa: I001
 from bagof.core.magic import (
     MultipleCauses,
     safe_get_args,
-    safe_get_origin,
     safe_isinstance,
     safe_issubclass,
+    unwrap,
 )
 from bagof.hints.typevars.co import NONE, T
 
@@ -192,7 +192,13 @@ class AnnotatedFactory(Factory[T], register=tx.Annotated):
         return self._factories
 
     def _get_factories(self) -> tx.Tuple[Factory, ...]:
-        origin = safe_get_origin(self.hint, unwrap=tx.Annotated)
+        # The unwrapped inner hint, arguments and all -- not its bare
+        # origin. Building from the origin drops the inner arguments:
+        # `Annotated[Union[int, str], "m"]` would build from a bare
+        # `Union` (an empty union of members) and `Annotated[list[int],
+        # "m"]` would silently lose its element type. The sibling
+        # converter/validator bags hand the inner hint down the same way.
+        wrapped = unwrap(self.hint, tx.Annotated)
 
         factories = []
         for arg in safe_get_args(self.hint):
@@ -201,7 +207,7 @@ class AnnotatedFactory(Factory[T], register=tx.Annotated):
                 # configuration fails with a `TypeError` naming what it
                 # is missing rather than silently taking the annotated
                 # type as that argument.
-                arg = arg(hint=origin)
+                arg = arg(hint=wrapped)
             if not safe_isinstance(arg, Factory):
                 # Look into annotation registry
                 arg = self._get_factory(arg)
@@ -209,12 +215,12 @@ class AnnotatedFactory(Factory[T], register=tx.Annotated):
                 if not arg.has_explicit_hint:
                     # A metadata factory written without a hint of its own
                     # builds the annotated type. It is used in preference
-                    # to the origin factory, so keeping its class
-                    # `DEFAULT` would build the wrong type entirely.
-                    arg = arg.rebind(origin)
+                    # to the base factory, so keeping its class `DEFAULT`
+                    # would build the wrong type entirely.
+                    arg = arg.rebind(wrapped)
                 factories.append(arg)
 
-        factories.insert(0, get_factory(origin))
+        factories.insert(0, get_factory(wrapped))
         return tuple(factories)
 
     def __call__(self) -> T:

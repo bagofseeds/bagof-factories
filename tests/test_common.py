@@ -66,6 +66,17 @@ def test_annotated_builds_origin_value() -> None:
     assert get_factory(tx.Annotated[tx.List[int], "meta"])() == []
 
 
+def test_annotated_builds_from_the_inner_hint_not_its_origin() -> None:
+    """An annotated hint keeps the inner hint's arguments.
+
+    The fallback used to build from the origin *of* the inner hint,
+    dropping its arguments -- a bare `Union` (no members) then raised,
+    and a `list[int]` silently lost its element type.
+    """
+    assert get_factory(tx.Annotated[tx.Union[int, str], "m"])() == 0
+    assert get_factory(tx.Annotated[tx.Optional[int], "m"])() is None
+
+
 def test_annotated_uses_factory_class_in_metadata() -> None:
     """A `Factory` subclass in the metadata overrides the origin factory."""
     assert get_factory(tx.Annotated[int, NoneFactory])() is None
