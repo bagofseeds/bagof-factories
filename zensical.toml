@@ -11,9 +11,12 @@ nav = [
     {"builtins" = "api/builtins.md"},
     {"collections" = "api/collections.md"},
     {"common" = "api/common.md"},
+    {"cupy" = "api/cupy.md"},
+    {"dask" = "api/dask.md"},
     {"datetimes" = "api/datetimes.md"},
     {"enums" = "api/enums.md"},
     {"numbers" = "api/numbers.md"},
+    {"numpy" = "api/numpy.md"},
     {"typeddicts" = "api/typeddicts.md"},
     {"uuids" = "api/uuids.md"},
   ]}

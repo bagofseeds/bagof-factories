@@ -1,1 +1,7 @@
 pytest>=7
+# Optional runtime dependencies, exercised by the numpy and dask
+# factories. Both install on a CPU runner. cupy is deliberately absent: it
+# needs a CUDA toolchain and cannot run on a CPU runner, so its factory is
+# type-checked only.
+numpy
+dask[array]

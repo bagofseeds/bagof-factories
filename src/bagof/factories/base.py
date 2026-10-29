@@ -15,7 +15,10 @@ import typing_extensions as tx  # noqa: I001
 from bagof.core.magic import (
     UNSET,
     MagicHint,
+    defer,
     get_from_registry,
+    is_forward_ref,
+    resolve_pending,
     safe_issubclass,
 )
 from bagof.hints.typevars.co import T
@@ -163,6 +166,14 @@ class Factory(MagicHint[T], metaclass=FactoryMetaclass):
         *hints
             One or more type hints to register the factory class for.
             Defaults to the class's `DEFAULT` hint if none are given.
+
+            A [`ForwardRef`][typing.ForwardRef] key registers the object
+            it names lazily: nothing is imported, and the key is resolved
+            once that object has been imported by someone else. The name
+            is looked up first relative to the registering class's module
+            (or the ref's `module=`), then as an absolute dotted path --
+            so use the real dotted path, e.g.
+            `ForwardRef("dask.array.Array")`.
         registry : FactoryRegistry
             The registry to register the factory class in.
             Defaults to the global registry.
@@ -173,8 +184,15 @@ class Factory(MagicHint[T], metaclass=FactoryMetaclass):
 
         def decorator(cls: tx.Type[Factory]) -> tx.Type[Factory]:
             hints_ = hints or (cls.DEFAULT,)
+            # Settle the resolvable lazy keys first, so that the later
+            # registration still wins, whichever kind of key each one is.
+            resolve_pending()
             for hint in hints_:
-                registry[hint] = cls
+                if is_forward_ref(hint):
+                    defer(registry, hint, cls, cls.__module__)
+                else:
+                    registry[hint] = cls
+            resolve_pending()
             return cls
 
         return decorator
