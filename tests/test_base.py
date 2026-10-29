@@ -185,3 +185,34 @@ def test_register_a_single_hint_without_a_tuple() -> None:
         DEFAULT = _Single
 
     assert get_factory_class(_Single) is ForSingle
+
+
+def test_register_forward_ref(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A `ForwardRef` key resolves once the object it names is imported."""
+    import sys
+    import types
+
+    from bagof.core.magic import clear_pending
+
+    class Thing:
+        pass
+
+    class ThingFactory(Factory[tx.Any]):
+        DEFAULT = Thing
+
+    registry: FactoryRegistry = {}
+    try:
+        Factory.register(
+            ThingFactory,
+            tx.ForwardRef("_bagof_fake_lib.Thing"),
+            registry=registry,
+        )
+        assert registry == {}
+        assert "_bagof_fake_lib" not in sys.modules
+
+        module = types.ModuleType("_bagof_fake_lib")
+        module.Thing = Thing  # type: ignore[attr-defined]
+        monkeypatch.setitem(sys.modules, "_bagof_fake_lib", module)
+        assert Factory.get_class(Thing, registry, None) is ThingFactory
+    finally:
+        clear_pending(registry)
