@@ -5,6 +5,9 @@ __all__: list = []
 # dependencies
 import typing_extensions as tx
 
+# bags
+from bagof.core.magic import has_module, lazy_import
+
 # locals
 from ._arrays import ArrayFactory
 
@@ -12,19 +15,19 @@ if tx.TYPE_CHECKING:
     # Import the bare module so mkdocstrings resolves the `numpy.*`
     # cross-references in the docstrings below. Type-checking only.
     import numpy  # noqa: F401
-    import numpy as np
-    from bagof.hints.numpy import ndarray as _hint_ndarray
-else:
-    try:
-        import numpy as np
-        from bagof.hints.numpy import ndarray as _hint_ndarray
-    except ImportError:  # pragma: no cover
-        np = _hint_ndarray = None
 
-if tx.TYPE_CHECKING or np is not None:
+
+# numpy is only imported once a numpy factory is actually used: the
+# registry keys are forward references, resolved once `numpy` (or the hint
+# module) has been imported by the caller -- see `Factory.register`.
+if tx.TYPE_CHECKING or has_module("numpy"):
 
     class NDArrayFactory(
-        ArrayFactory, register=(np.ndarray, _hint_ndarray)
+        ArrayFactory,
+        register=(
+            tx.ForwardRef("numpy.ndarray"),
+            tx.ForwardRef("bagof.hints.numpy.ndarray"),
+        ),
     ):
         """
         Factory for [`numpy.ndarray`][] hints (an array of zeros).
@@ -42,9 +45,9 @@ if tx.TYPE_CHECKING or np is not None:
             ```
         """
 
-        DEFAULT = np.ndarray
-        ARRAY = SCALARS = np
-        ARRAY_TYPE = np.ndarray
-        HINT_TYPE = _hint_ndarray
+        DEFAULT = lazy_import("numpy.ndarray")
+        ARRAY = SCALARS = lazy_import("numpy")
+        ARRAY_TYPE = lazy_import("numpy.ndarray")
+        HINT_TYPE = lazy_import("bagof.hints.numpy.ndarray")
 
     __all__ += ["NDArrayFactory"]
